@@ -1,0 +1,30 @@
+Nếu ta tạo hai constructor có cùng kiểu tham số và thứ tự, Java sẽ báo lỗi vì không thể phân biệt chúng
+
+Ví dụ gây lỗi:
+
+public class DigitalVideoDisc {
+    private String title;
+    private String category;
+
+    // Constructor 1: Tạo DVD theo tiêu đề
+    public DigitalVideoDisc(String title) {
+        this.title = title;
+    }
+
+    // Constructor 2: Tạo DVD theo danh mục (LỖI)
+    public DigitalVideoDisc(String category) {  // LỖI: Trùng kiểu dữ liệu với constructor trên
+        this.category = category;
+    }
+}
+
+=> Khi biên dịch: error: constructor DigitalVideoDisc(String) is already defined in class DigitalVideoDisc
+Để không bị lỗi, ta cần sửa sao cho chúng có danh sách tham số khác nhau
+VD:
+
+    public DigitalVideoDisc(String title) {
+        this.title = title;
+    }
+
+    public DigitalVideoDisc(String category, String title) {
+        this.category = category;
+    }
