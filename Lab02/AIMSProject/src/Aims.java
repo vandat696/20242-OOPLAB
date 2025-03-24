@@ -20,5 +20,7 @@ public class Aims {
 		anOrder.addDigitalVideoDisc(dvd4);
 		System.out.println("Removing disc...");
 		anOrder.removeDigitalVideoDisc(dvd4);
+		
+		System.out.println("Total discs created: " + DigitalVideoDisc.getNbDigitalVideoDisc());
 	}
 }
