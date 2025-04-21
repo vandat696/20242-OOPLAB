@@ -17,7 +17,7 @@ public class CartTest {
         //cart.printOrderedCart();
         cart.searchByID(2);
         cart.searchByTitle("the star");
-        cart.printOrderedCart();
+        cart.print();
 	}
 	
 	

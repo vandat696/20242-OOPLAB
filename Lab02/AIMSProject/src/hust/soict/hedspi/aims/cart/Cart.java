@@ -78,7 +78,7 @@ public class Cart {
 		return total;
 	}
 	
-	public void printOrderedCart() {
+	public void print() {
 		System.out.println("***********************CART***********************\n"
 							+ "Ordered Items:");
 		for (int i = 0; i < qtyOrdered; i++ ) {
