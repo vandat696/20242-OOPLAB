@@ -1,4 +1,5 @@
-import javax.swing.text.ChangedCharSetException;
+package hust.soict.hedspi.test.disc;
+import hust.soict.hedspi.disc.DigitalVideoDisc;
 
 public class TestPassingParameter {
 

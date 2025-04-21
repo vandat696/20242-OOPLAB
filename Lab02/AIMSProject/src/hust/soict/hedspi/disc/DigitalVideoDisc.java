@@ -1,3 +1,4 @@
+package hust.soict.hedspi.disc;
 
 
 public class DigitalVideoDisc {
@@ -65,6 +66,28 @@ public class DigitalVideoDisc {
 
 	public static int getNbDigitalVideoDisc() {
 		return nbDigitalVideoDiscs;
+	}
+
+	@Override
+	public String toString() {
+		return "DigitalVideoDisc [id=" + id + ", title=" + title + ", category=" + category + ", director=" + director
+				+ ", length=" + length + ", cost=" + cost + "]";
+	}
+	
+	public boolean isMatch(String title) {
+	    if (this.title == null || title == null) {
+	        return false;
+	    }
+
+	    String discTitleLower = this.title.toLowerCase();
+	    String[] keywords = title.toLowerCase().split("\\s+");
+
+	    for (String keyword : keywords) {
+	        if (discTitleLower.contains(keyword)) {
+	            return true;
+	        }
+	    }
+	    return false;
 	}
 	
 }

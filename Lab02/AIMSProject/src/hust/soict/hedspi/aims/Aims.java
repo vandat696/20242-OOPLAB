@@ -1,6 +1,11 @@
+package hust.soict.hedspi.aims;
+
+import hust.soict.hedspi.aims.cart.Cart;
+import hust.soict.hedspi.disc.DigitalVideoDisc;
+
 public class Aims {
+
 	public static void main(String[] args) {
-		
 		Cart anOrder = new Cart();
 		
 		DigitalVideoDisc dvd1 = new DigitalVideoDisc("The Lion King", "Animation", "Roger Allers", 87, 19.95f);
@@ -22,5 +27,7 @@ public class Aims {
 		anOrder.removeDigitalVideoDisc(dvd4);
 		
 		System.out.println("Total discs created: " + DigitalVideoDisc.getNbDigitalVideoDisc());
+
 	}
+
 }
