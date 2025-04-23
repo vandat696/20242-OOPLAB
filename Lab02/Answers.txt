@@ -1,38 +1,68 @@
-1, If you create a constructor method to build a DVD by title then create a constructor method to build
-a DVD by category. Does JAVA allow you to do this?
-- Nếu tạo một constructor để xây dựng DVD chỉ với title và sau đó tạo một constructor để xây dựng DVD chỉ với category, Java sẽ không cho phép điều này. Lý do là cả hai constructor sẽ có cùng chữ ký (cả hai chỉ nhận một tham số kiểu String), điều này gây ra xung đột. Đây được gọi là lỗi duplicate constructor trong Java.
-- Java phân biệt giữa các constructor nạp chồng dựa trên số lượng hoặc kiểu của tham số. Trong trường hợp này:
-    +	DigitalVideoDisc(String title)
-    +  	DigitalVideoDisc(String category)
-Cả hai constructor đều nhận một tham số kiểu String, và Java không thể phân biệt chúng chỉ dựa trên tên của tham số, do đó sẽ gây ra lỗi biên dịch.
-
-2,  Is JAVA a Pass by Value or a Pass by Reference programming language?
-Java luôn luôn là pass by value (truyền tham trị), không phải pass by reference (truyền tham chiếu).
-
-3, After the call of swap(jungleDVD, cinderellaDVD) why does the title of these two
-objects still remain?
-Trong Java, đối tượng không được truyền trực tiếp mà thay vào đó, bản sao của tham chiếu đến đối tượng được truyền vào phương thức.
-Cụ thể, trong phương thức swap():
+1. Which classes are aggregates of other classes? Checking all constructors of whole classes if they
+initialize for their parts?
+- CompactDisc chứa ArrayList<Track>	
+- Book chứa List<String> authors	
+- Cart chứa ArrayList<Media>	
+- Store chứa ArrayList<Media>
+Xoá các setter dư thừa:
+Những phương thức setter nên xóa bỏ nếu:
+Dữ liệu không thay đổi sau khi tạo (ví dụ: title, cost, id, category, director, length)
+Để đảm bảo tính bất biến (immutable) cho đối tượng
+Chỉ giữ lại các phương thức add/remove như trong CompactDisc (addTrack, removeTrack) hoặc Book (addAuthor, removeAuthor) là đủ.
+2. If the passing object is not an instance of Media, what happens?
+Khi ta viết
 ```
-public static void swap(DigitalVideoDisc dvd1, DigitalVideoDisc dvd2) {
-    DigitalVideoDisc temp = dvd1;
-    dvd1 = dvd2;
-    dvd2 = temp;
+if (!(o instanceof Media)) return false;
+```
+Thì trình biên dịch sẽ tránh lỗi ClassCastException, giúp chương trình an toàn hơn. 
+Nếu không kiểm tra, khi ta ép kiểu ((Media) o) mà o không phải Media, thì sẽ bị runtime error.
+3. What class should implement the Comparable interface?
+Lớp Media nên implements interface Comparable<Media>, vì Media là lớp cha chung cho các loại đối tượng như Book, DigitalVideoDisc, CompactDisc. Khi đó, ta có thể định nghĩa quy tắc sắp xếp mặc định cho mọi loại Media.
+4. How should you implement the compareTo() method to reflect the ordering we want?
+Nếu ta muốn quy tắc sắp xếp mặc định là:
+Sắp xếp theo title (thứ tự alphabet), nếu trùng thì theo cost giảm dần.
+Ta sẽ implement như sau:
+```
+@Override
+public int compareTo(Media other) {
+    int titleCompare = this.getTitle().compareToIgnoreCase(other.getTitle());
+    if (titleCompare != 0) {
+        return titleCompare;
+    } else {
+        return Float.compare(other.getCost(), this.getCost()); // giảm dần theo cost
+    }
 }
-````
-dvd1 và dvd2 là bản sao của tham chiếu gốc trong main(), không phải bản thân tham chiếu gốc.
-Khi đổi chỗ dvd1 và dvd2 trong swap(), ta chỉ thay đổi các bản sao của tham chiếu trong phương thức này.
-Sau khi phương thức kết thúc, các thay đổi chỉ có hiệu lực trong swap() và không ảnh hưởng đến các biến gốc trong main().
-Vì vậy, tiêu đề của hai đối tượng vẫn giữ nguyên sau khi gọi swap().
+```
+Can we have two ordering rules (by title then cost and by cost then title) using Comparable?
+=> Ta không thể.
+Giao diện Comparable chỉ cho phép một quy tắc so sánh duy nhất vì nó chỉ có một phương thức compareTo().
+Nếu bạn cần nhiều quy tắc sắp xếp (ví dụ: lúc thì theo title, lúc thì theo cost), bạn nên sử dụng Comparator thay vì Comparable.
+Vì vậy:
+- Comparable → 1 quy tắc mặc định.
+- Comparator → Nhiều quy tắc tùy ý.
+4. Suppose the DVDs have a different ordering rule (by title, then decreasing length, then cost). How would you modify your code?
+Ta có thể override phương thức compareTo() riêng trong lớp con DigitalVideoDisc, ví dụ:
+```
+public class DigitalVideoDisc extends Media {
+    private int length;
 
-4, After the call of changeTitle(jungleDVD, cinderellaDVD.getTitle()) why is
-the title of the JungleDVD changed?
-Khi gọi changeTitle(jungleDVD, cinderellaDVD.getTitle()), quá trình diễn ra như sau:
-- dvd là một bản sao của tham chiếu jungleDVD, có nghĩa là cả hai đều trỏ đến cùng một đối tượng trong bộ nhớ.
-- dvd.setTitle(title); → Điều này thay đổi tiêu đề của đối tượng mà cả dvd và jungleDVD đang trỏ đến.
-- Kết quả: Tiêu đề của jungleDVD trong main() cũng thay đổi.
-- dvd = new DigitalVideoDisc(oldTitle);
-- Ở đây, dvd bây giờ trỏ đến một đối tượng mới với tiêu đề ban đầu, nhưng chỉ trong phương thức changeTitle().
-- Vì dvd chỉ là bản sao của tham chiếu, jungleDVD trong main() vẫn không bị thay đổi tham chiếu.
-- Khi gọi dvd.setTitle(title);, ta đang thay đổi dữ liệu bên trong đối tượng mà jungleDVD tham chiếu đến.
-- Việc gán dvd = new DigitalVideoDisc(oldTitle); chỉ ảnh hưởng đến dvd trong changeTitle(), không ảnh hưởng đến jungleDVD trong main().
+    @Override
+    public int compareTo(Media other) {
+        if (!(other instanceof DigitalVideoDisc)) {
+            return super.compareTo(other); // fallback to Media's compareTo
+        }
+
+        DigitalVideoDisc o = (DigitalVideoDisc) other;
+        int titleCompare = this.getTitle().compareToIgnoreCase(o.getTitle());
+        if (titleCompare != 0) return titleCompare;
+
+        int lengthCompare = Integer.compare(o.length, this.length); // length giảm dần
+        if (lengthCompare != 0) return lengthCompare;
+
+        return Float.compare(this.getCost(), o.getCost()); // cost tăng dần
+    }
+}
+```
+
+
+

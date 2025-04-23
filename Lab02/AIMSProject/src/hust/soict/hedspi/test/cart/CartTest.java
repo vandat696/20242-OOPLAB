@@ -1,7 +1,8 @@
 package hust.soict.hedspi.test.cart;
 
 import hust.soict.hedspi.aims.cart.Cart;
-import hust.soict.hedspi.disc.DigitalVideoDisc;
+import hust.soict.hedspi.aims.media.Book;
+import hust.soict.hedspi.aims.media.DigitalVideoDisc;
 
 public class CartTest {
 	public static void main(String[] args) {
@@ -12,12 +13,18 @@ public class CartTest {
         DigitalVideoDisc dvd2 = new DigitalVideoDisc("Star Wars", "Science Fiction", "George Lucas", 124, 24.95f);
         DigitalVideoDisc dvd3 = new DigitalVideoDisc("Aladdin", "Animation", "John Musker", 90, 18.99f);
 
-        cart.addDigitalVideoDisc(dvd1, dvd2, dvd3);
+        cart.addMedia(new Book(1, "Java Programming", "Programming", 20.5f));
+        cart.addMedia(new DigitalVideoDisc("Avatar", "Sci-fi", "James Cameron", 90, 19.9f));
+        cart.addMedia(new Book(3, "Java Programming", "Programming", 25.0f));
+        cart.addMedia(dvd3);
+        cart.addMedia(dvd2);
+        cart.addMedia(dvd1);
+        
+        cart.sortByTitleCost();
+        cart.printCart();
 
-        //cart.printOrderedCart();
-        cart.searchByID(2);
-        cart.searchByTitle("the star");
-        cart.print();
+        cart.sortByCostTitle();
+        cart.printCart();
 	}
 	
 	
