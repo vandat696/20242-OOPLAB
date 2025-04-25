@@ -17,7 +17,8 @@ if (!(o instanceof Media)) return false;
 Thì trình biên dịch sẽ tránh lỗi ClassCastException, giúp chương trình an toàn hơn. 
 Nếu không kiểm tra, khi ta ép kiểu ((Media) o) mà o không phải Media, thì sẽ bị runtime error.
 3. What class should implement the Comparable interface?
-Lớp Media nên implements interface Comparable<Media>, vì Media là lớp cha chung cho các loại đối tượng như Book, DigitalVideoDisc, CompactDisc. Khi đó, ta có thể định nghĩa quy tắc sắp xếp mặc định cho mọi loại Media.
+Lớp Media nên implements interface Comparable<Media>, vì Media là lớp cha chung cho các loại đối tượng như Book, DigitalVideoDisc, CompactDisc. 
+Khi đó, ta có thể định nghĩa quy tắc sắp xếp mặc định cho mọi loại Media.
 4. How should you implement the compareTo() method to reflect the ordering we want?
 Nếu ta muốn quy tắc sắp xếp mặc định là:
 Sắp xếp theo title (thứ tự alphabet), nếu trùng thì theo cost giảm dần.
@@ -33,14 +34,14 @@ public int compareTo(Media other) {
     }
 }
 ```
-Can we have two ordering rules (by title then cost and by cost then title) using Comparable?
+5. Can we have two ordering rules (by title then cost and by cost then title) using Comparable?
 => Ta không thể.
 Giao diện Comparable chỉ cho phép một quy tắc so sánh duy nhất vì nó chỉ có một phương thức compareTo().
 Nếu bạn cần nhiều quy tắc sắp xếp (ví dụ: lúc thì theo title, lúc thì theo cost), bạn nên sử dụng Comparator thay vì Comparable.
 Vì vậy:
 - Comparable → 1 quy tắc mặc định.
 - Comparator → Nhiều quy tắc tùy ý.
-4. Suppose the DVDs have a different ordering rule (by title, then decreasing length, then cost). How would you modify your code?
+6. Suppose the DVDs have a different ordering rule (by title, then decreasing length, then cost). How would you modify your code?
 Ta có thể override phương thức compareTo() riêng trong lớp con DigitalVideoDisc, ví dụ:
 ```
 public class DigitalVideoDisc extends Media {
