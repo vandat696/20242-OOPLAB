@@ -1,18 +1,17 @@
 package hust.soict.hedspi.aims.screen.customer.controller;
 
+import java.io.IOException;
+
 import hust.soict.hedspi.aims.cart.Cart;
-import hust.soict.hedspi.aims.store.Store;
 import hust.soict.hedspi.aims.media.Media;
 import hust.soict.hedspi.aims.media.Playable;
-import hust.soict.hedspi.aims.exception.PlayerException; // Import PlayerException
-
-import javafx.beans.value.ChangeListener;
+import hust.soict.hedspi.aims.store.Store;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -21,226 +20,220 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.util.function.Predicate;
+import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.RadioButton;
 
 public class CartController {
 
-    @FXML private TableView<Media> tblMedia;
-    @FXML private TableColumn<Media, String> colMediaTitle;
-    @FXML private TableColumn<Media, String> colMediaCategory;
-    @FXML private TableColumn<Media, Float> colMediaCost;
-    @FXML private Button btnPlay;
-    @FXML private Button btnRemove;
-    @FXML private Label lblTotalCost;
-    @FXML private TextField tfFilter;
-    @FXML private RadioButton radioBtnFilterId;
-    @FXML private RadioButton radioBtnFilterTitle;
-    @FXML private Button btnViewStore;
-    @FXML private Button btnPlaceOrder;
-
-    private Store store;
-    private Cart cart;
-    private FilteredList<Media> filteredList;
+	private Cart cart;
+	private Store store;
+	private FilteredList<Media> filteredMedia;
 
     public CartController(Store store, Cart cart) {
-        this.store = store;
         this.cart = cart;
+        this.store = store;
     }
+    @FXML
+    private javafx.scene.control.TextField txtFilter;
+    @FXML
+    private RadioButton radioBtnFilterId;
+    @FXML
+    private RadioButton radioBtnFilterTitle; 
+    @FXML
+    private TableColumn<Media, Integer> colMediaId;
 
     @FXML
+    private Label costLabel;
+
+    @FXML
+    private TableView<Media> tblMedia;
+
+    @FXML
+    private TableColumn<Media, Float> colMediaCost;
+
+    @FXML
+    private ToggleGroup filterCategory;
+
+    @FXML
+    private Button btnPlay;
+
+    @FXML
+    private Button btnRemove;
+
+    @FXML
+    private TableColumn<Media, String> colMediaTitle;
+
+    @FXML
+    private TableColumn<Media, String> colMediaCategory;
+    @FXML
     public void initialize() {
-        colMediaTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
-        colMediaCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
-        colMediaCost.setCellValueFactory(new PropertyValueFactory<>("cost"));
-
-        filteredList = new FilteredList<>(cart.getItemsOrdered(), p -> true);
-        SortedList<Media> sortedList = new SortedList<>(filteredList);
-        sortedList.comparatorProperty().bind(tblMedia.comparatorProperty());
-        tblMedia.setItems(sortedList);
-
+        colMediaId.setCellValueFactory(
+            new PropertyValueFactory<Media, Integer>("id"));
+        colMediaTitle.setCellValueFactory(
+            new PropertyValueFactory<Media, String>("title"));
+        colMediaCategory.setCellValueFactory(
+            new PropertyValueFactory<Media, String>("category"));
+        colMediaCost.setCellValueFactory(
+            new PropertyValueFactory<Media, Float>("cost"));
+        if (cart != null && cart.totalCostProperty() != null) {
+            cart.totalCostProperty().addListener((observable, oldValue, newValue) -> {
+                costLabel.setText(String.format("%.2f $", newValue.floatValue()));
+            });
+            costLabel.setText(String.format("%.2f $", cart.getTotalCost()));
+        } else {
+            System.err.println("Cart or totalCostProperty is null. Cannot set up listener for costLabel.");
+            if (cart != null) {
+                 costLabel.setText(String.format("%.2f $", cart.getTotalCost()));
+            } else {
+                 costLabel.setText("N/A");
+            }
+        }
+        if(cart.getItemsOrdered() != null){
+            filteredMedia = new FilteredList<>(cart.getItemsOrdered(), p -> true); 
+            tblMedia.setItems(filteredMedia);
+        }
         btnPlay.setVisible(false);
         btnRemove.setVisible(false);
-        btnPlay.setManaged(false);
-        btnRemove.setManaged(false);
 
-        tblMedia.getSelectionModel().selectedItemProperty().addListener(
-                new ChangeListener<Media>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Media> observable, Media oldValue, Media newValue) {
-                        updateButtonBar(newValue);
-                    }
-                }
-        );
-        updateTotalCost();
-
-        ToggleGroup filterToggleGroup = new ToggleGroup();
-        radioBtnFilterId.setToggleGroup(filterToggleGroup);
-        radioBtnFilterTitle.setToggleGroup(filterToggleGroup);
-        radioBtnFilterTitle.setSelected(true);
-
-        tfFilter.textProperty().addListener((observable, oldValue, newValue) -> {
-            showFilteredMedia();
+        tblMedia.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Media>() {
+            @Override
+            public void changed(ObservableValue<? extends Media> observable, Media oldValue, Media newValue) {
+                updateButtonBar(newValue);
+            }
         });
-
-        radioBtnFilterId.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                showFilteredMedia();
+//        txtFilter.textProperty().addListener(new ChangeListener<String>() {
+//            @Override
+//            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+//                showFilteredMedia(newValue);
+//            }
+//        });
+        txtFilter.textProperty().addListener((observable, oldValue, newValue) -> filterMedia(newValue));
+        radioBtnFilterId.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            if (isSelected) {
+                filterMedia(txtFilter.getText()); 
             }
         });
 
-        radioBtnFilterTitle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                showFilteredMedia();
+        radioBtnFilterTitle.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            if (isSelected) {
+                filterMedia(txtFilter.getText()); 
             }
         });
     }
+    private void filterMedia(String filter) {
+        if (filter == null || filter.isEmpty()) {
+            filteredMedia.setPredicate(s -> true); 
+        } else {
+            filteredMedia.setPredicate(media -> {
+                if (media == null) {
+                    return false;
+                }
+                String lowerCaseFilter = filter.toLowerCase();
+                if (radioBtnFilterTitle.isSelected()) {
+                    return media.getTitle().toLowerCase().contains(lowerCaseFilter);
+                } else if (radioBtnFilterId.isSelected()) {
+                    try {
+                        int idFilter = Integer.parseInt(filter); 
+                        return media.getId() == idFilter;
+                    } catch (NumberFormatException e) {                   
+                        System.err.println("Invalid ID format: " + filter + " - " + e.getMessage());
+                        return false;
+                    }
+                }
+                return false; 
+            });
+        }
+    }
+//	private void showFilteredMedia(String filter) {
+//        if (filteredMedia == null) return;
+//
+//        filteredMedia.setPredicate(media -> {
+//            if (filter == null || filter.isEmpty()) {
+//                return true;
+//            }
+//
+//            String lowerCaseFilter = filter.toLowerCase();
+//
+//            return media.getTitle().toLowerCase().contains(lowerCaseFilter)
+//                || media.getCategory().toLowerCase().contains(lowerCaseFilter);
+//        });
+//    }
 
     void updateButtonBar(Media media) {
-        if (media != null) {
+        if (media == null) {
+            btnPlay.setVisible(false);
+            btnRemove.setVisible(false);
+        } else {
             btnRemove.setVisible(true);
-            btnRemove.setManaged(true);
-
             if (media instanceof Playable) {
                 btnPlay.setVisible(true);
-                btnPlay.setManaged(true);
             } else {
                 btnPlay.setVisible(false);
-                btnPlay.setManaged(false);
             }
-        } else {
-            btnRemove.setVisible(false);
-            btnRemove.setManaged(false);
-            btnPlay.setVisible(false);
-            btnPlay.setManaged(false);
         }
     }
 
     @FXML
     void btnPlayPressed(ActionEvent event) {
-        Media selectedMedia = tblMedia.getSelectionModel().getSelectedItem();
+    	Media selectedMedia = tblMedia.getSelectionModel().getSelectedItem();
         if (selectedMedia instanceof Playable) {
             try {
-                ((Playable) selectedMedia).play(); // Gọi phương thức play(), có thể ném PlayerException
-                // Nếu play thành công, có thể hiển thị thông báo
+                ((Playable) selectedMedia).play();
                 Alert alert = new Alert(AlertType.INFORMATION);
-                alert.setTitle("Đang phát Media");
+                alert.setTitle("Playing Media");
                 alert.setHeaderText(null);
-                alert.setContentText("Đang phát: " + selectedMedia.getTitle());
+                alert.setContentText("Now playing: " + selectedMedia.getTitle());
                 alert.showAndWait();
-            } catch (PlayerException e) {
-                // Bắt PlayerException và hiển thị thông tin lỗi
-                System.err.println("PlayerException caught in CartController: " + e.getMessage());
-                System.err.println("Exception toString(): " + e.toString());
-                e.printStackTrace(); // In dấu vết ngăn xếp ra console
-
+            } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Lỗi Phát Media");
-                alert.setHeaderText("Không thể phát Media!");
-                alert.setContentText(e.getMessage() + "\n\nChi tiết lỗi: " + e.toString());
+                alert.setTitle("Playback Error");
+                alert.setHeaderText(null);
+                alert.setContentText("Error playing " + selectedMedia.getTitle() + ": " + e.getMessage());
                 alert.showAndWait();
             }
         } else {
-            System.out.println("Selected item is not playable.");
             Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Không thể phát");
+            alert.setTitle("Not Playable");
             alert.setHeaderText(null);
-            alert.setContentText("Mục đã chọn không thể phát.");
+            alert.setContentText("The selected media is not playable");
             alert.showAndWait();
         }
     }
 
     @FXML
     void btnRemovePressed(ActionEvent event) {
-        Media selectedMedia = tblMedia.getSelectionModel().getSelectedItem();
-        if (selectedMedia != null) {
-            cart.removeMedia(selectedMedia);
-            System.out.println("Removed: " + selectedMedia.getTitle() + " from cart.");
-            updateTotalCost();
-        } else {
-            System.out.println("No item selected to remove.");
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Cảnh báo");
-            alert.setHeaderText(null);
-            alert.setContentText("Vui lòng chọn một mục để xóa.");
-            alert.showAndWait();
-        }
+        Media media = tblMedia.getSelectionModel().getSelectedItem();
+        cart.removeMedia(media);
     }
 
-    private void updateTotalCost() {
-        lblTotalCost.setText(String.format("%.2f $", cart.totalCost()));
-    }
-
-    void showFilteredMedia() {
-        String filterText = tfFilter.getText().toLowerCase();
-
-        filteredList.setPredicate(media -> {
-            if (filterText == null || filterText.isEmpty()) {
-                return true;
-            }
-
-            if (radioBtnFilterId.isSelected()) {
-                try {
-                    int filterId = Integer.parseInt(filterText);
-                    return media.getId() == filterId;
-                } catch (NumberFormatException e) {
-                    return false;
-                }
-            } else {
-                return media.getTitle().toLowerCase().contains(filterText);
-            }
-        });
-    }
 
     @FXML
     void btnViewStorePressed(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("../view/Store.fxml"));
-            loader.setControllerFactory(c -> new hust.soict.hedspi.aims.screen.customer.controller.ViewStoreController(store, cart));
-            Parent root = loader.load();
-
-            Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setTitle("AIMS - Store Screen");
+    	try {
+            final String CART_FXML_FILE_PATH = "/hust/soict/hedspi/aims/screen/customer/view/Store.fxml";
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(CART_FXML_FILE_PATH));
+            fxmlLoader.setController(new ViewStoreController(store, cart));
+            Parent root = fxmlLoader.load();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Store");
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Failed to load Store.fxml: " + e.getMessage());
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("Lỗi Chuyển Màn Hình");
-            alert.setHeaderText("Không thể tải màn hình cửa hàng.");
-            alert.setContentText("Chi tiết lỗi: " + e.getMessage());
-            alert.showAndWait();
         }
     }
-
     @FXML
     void btnPlaceOrderPressed(ActionEvent event) {
-        if (cart.getItemsOrdered().isEmpty()) {
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Giỏ hàng trống");
-            alert.setHeaderText(null);
-            alert.setContentText("Không có sản phẩm nào trong giỏ hàng để đặt.");
-            alert.showAndWait();
-            return;
-        }
-
-        // Thực hiện đặt hàng: xóa tất cả các mục trong giỏ hàng
-        cart.clear();
-        updateTotalCost(); // Cập nhật lại tổng chi phí (về 0)
-
-        // Hiển thị thông báo đặt hàng thành công
+        cart.clearCart(); 
         Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Đặt hàng thành công");
+        alert.setTitle("Order Placed");
         alert.setHeaderText(null);
-        alert.setContentText("Đơn hàng của bạn đã được đặt thành công!");
+        alert.setContentText("Your order has been placed successfully!");
         alert.showAndWait();
     }
+
+
 }

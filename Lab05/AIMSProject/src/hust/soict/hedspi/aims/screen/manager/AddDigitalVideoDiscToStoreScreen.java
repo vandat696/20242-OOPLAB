@@ -1,60 +1,71 @@
 package hust.soict.hedspi.aims.screen.manager;
 
+import hust.soict.hedspi.aims.Aims;
+import hust.soict.hedspi.aims.media.DigitalVideoDisc;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import javax.swing.*;
-
-import hust.soict.hedspi.aims.media.DigitalVideoDisc;
-import hust.soict.hedspi.aims.store.Store;
+import java.awt.event.ActionListener;
 
 public class AddDigitalVideoDiscToStoreScreen extends AddItemToStoreScreen {
+    private JTextField tfTitle;
+    private JTextField tfCategory;
+    private JTextField tfDirector;
+    private JTextField tfLength;
+    private JTextField tfCost;
 
-    public AddDigitalVideoDiscToStoreScreen(Store store) {
-        super(store);
+    public AddDigitalVideoDiscToStoreScreen() {
+        super("DVD");
+        setJMenuBar(createMenuBar());
+        JPanel center = createCenter();
+        tfTitle = addInputField("Title: *", center);
+        tfCategory = addInputField("Category:", center);
+        tfDirector = addInputField("Director:", center);
+        tfLength = addInputField("Length:", center);
+        tfCost = addInputField("Cost: *", center);
+        center.add(Box.createRigidArea(new Dimension(10, 40)));
+        add(center, BorderLayout.CENTER);
+        add(createSouth(new ButtonListener()), BorderLayout.SOUTH);
+        setVisible(true);
     }
 
-    @Override
-    protected JPanel createCenter() {
-        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
+    private class ButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            switch (e.getActionCommand()) {
+                case "OK": {
+                    if (tfTitle.getText().equals("") || tfCost.getText().equals("")) {
+                        JOptionPane.showMessageDialog(null, "Some required fields (*) are empty!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
-        JLabel titleLabel = new JLabel("Title:");
-        JTextField titleField = new JTextField();
+                    // Just parse without validation
+                    float cost = Float.parseFloat(tfCost.getText());
+                    int length = Integer.parseInt(tfLength.getText());
 
-        JLabel categoryLabel = new JLabel("Category:");
-        JTextField categoryField = new JTextField();
+                    DigitalVideoDisc dvd = new DigitalVideoDisc(
+                            tfTitle.getText(),
+                            tfCategory.getText(),
+                            cost,
+                            length,
+                            tfDirector.getText()
+                    );
 
-        JLabel directorLabel = new JLabel("Director:");
-        JTextField directorField = new JTextField();
+                    Aims.getStore().addMedia(dvd);
+                    setVisible(false);
+                    JOptionPane.showMessageDialog(null, "New DVD added to store!");
+                    Aims.closeStoreScreen();
+                    Aims.openStoreScreen();
+                    break;
+                }
 
-        JLabel lengthLabel = new JLabel("Length:");
-        JTextField lengthField = new JTextField();
-
-        JLabel costLabel = new JLabel("Cost:");
-        JTextField costField = new JTextField();
-
-        JButton addButton = new JButton("Add DVD");
-        addButton.addActionListener((ActionEvent e) -> {
-            String title = titleField.getText();
-            String category = categoryField.getText();
-            String director = directorField.getText();
-            int length = Integer.parseInt(lengthField.getText());
-            float cost = Float.parseFloat(costField.getText());
-
-            DigitalVideoDisc dvd = new DigitalVideoDisc(title, category, director, length, cost);
-            store.addMedia(dvd);
-
-            dispose();
-            new StoreManagerScreen(store);
-        });
-
-        panel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
-        panel.add(titleLabel);     panel.add(titleField);
-        panel.add(categoryLabel);  panel.add(categoryField);
-        panel.add(directorLabel);  panel.add(directorField);
-        panel.add(lengthLabel);    panel.add(lengthField);
-        panel.add(costLabel);      panel.add(costField);
-        panel.add(new JLabel());   panel.add(addButton);
-
-        return panel;
+                case "Cancel":
+                    setVisible(false);
+                    Aims.openStoreScreen();
+                    break;
+            }
+        }
     }
 }

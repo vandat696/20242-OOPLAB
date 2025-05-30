@@ -1,32 +1,31 @@
 package hust.soict.hedspi.test.cart;
 
 import hust.soict.hedspi.aims.cart.Cart;
-import hust.soict.hedspi.aims.media.Book;
 import hust.soict.hedspi.aims.media.DigitalVideoDisc;
 
+import java.util.Scanner;
 public class CartTest {
-	public static void main(String[] args) {
-		Cart cart = new Cart();
-
-        // example
-        DigitalVideoDisc dvd1 = new DigitalVideoDisc("The Lion King", "Animation", "Roger Allers", 87, 19.95f);
-        DigitalVideoDisc dvd2 = new DigitalVideoDisc("Star Wars", "Science Fiction", "George Lucas", 124, 24.95f);
-        DigitalVideoDisc dvd3 = new DigitalVideoDisc("Aladdin", "Animation", "John Musker", 90, 18.99f);
-
-        cart.addMedia(new Book("Java Programming", "Programming", 20.5f));
-        cart.addMedia(new DigitalVideoDisc("Avatar", "Sci-fi", "James Cameron", 90, 19.9f));
-        cart.addMedia(new Book("Java Programming", "Programming", 25.0f));
-        cart.addMedia(dvd3);
-        cart.addMedia(dvd2);
+    public static void main(String[] args) {
+        Cart cart = new Cart();
+        DigitalVideoDisc dvd1 = new DigitalVideoDisc("The Lion King",
+                "Animation",19.95f, 87, "Roger Allers");
         cart.addMedia(dvd1);
-        
-        cart.sortByTitleCost();
-        cart.printCart();
-
-        cart.sortByCostTitle();
-        cart.printCart();
-	}
-	
-	
-
-}
+        DigitalVideoDisc dvd2 = new DigitalVideoDisc("Star Wars",
+                "Science Fiction", 24.95f, 87, "George Lucas");
+        cart.addMedia(dvd2);
+        DigitalVideoDisc dvd3 = new DigitalVideoDisc("Aladin",
+                "Animation", 18.99f);
+        cart.addMedia(dvd3);
+        cart.print();
+        System.out.println("Enter the id of DVD you want to search: ");
+        Scanner keyboard = new Scanner(System.in);
+        int idForSearch = keyboard.nextInt();
+        cart.searchById(idForSearch);
+        System.out.println("Enter the title of DVD you want to search: ");
+        keyboard.close();
+        keyboard = new Scanner(System.in);
+        String titleForSearch = keyboard.nextLine();
+        cart.searchByTitle(titleForSearch);
+        keyboard.close();
+    }
+} 
